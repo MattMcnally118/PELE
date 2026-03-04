@@ -122,6 +122,7 @@ function App() {
       {selectedPlayer && (
         <PlayerDetail
           player={selectedPlayer}
+          allPlayers={players}
           onClose={() => setSelectedPlayer(null)}
         />
       )}

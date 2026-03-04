@@ -6,11 +6,18 @@ import {
   PolarRadiusAxis,
   ResponsiveContainer,
   Tooltip,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Legend,
 } from "recharts";
 import type { Player } from "../types/player";
 
 interface PlayerDetailProps {
   player: Player;
+  allPlayers: Player[];
   onClose: () => void;
 }
 
@@ -22,7 +29,18 @@ function getPeleLabel(score: number): string {
   return "Poor";
 }
 
-export function PlayerDetail({ player, onClose }: PlayerDetailProps) {
+export function PlayerDetail({ player, allPlayers, onClose }: PlayerDetailProps) {
+  const playerSeasons = allPlayers
+    .filter((p) => p.player_id === player.player_id)
+    .sort((a, b) => a.season.localeCompare(b.season));
+
+  const seasonTrendData = playerSeasons.map((p) => ({
+    season: p.season.replace("-20", "/"),
+    PELE: parseFloat(p.pele_100.toFixed(1)),
+    OC: parseFloat(p.oc.toFixed(2)),
+    DC: parseFloat(p.dc.toFixed(2)),
+    team: p.team_id,
+  }));
   // Normalize stats to 0-100 scale for radar chart
   // Using rough percentile estimates based on typical ranges
   const radarData = [
@@ -108,6 +126,32 @@ export function PlayerDetail({ player, onClose }: PlayerDetailProps) {
 
         {/* Content */}
         <div className="p-6">
+          {/* Season History */}
+          {seasonTrendData.length > 1 && (
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <h3 className="text-lg font-semibold mb-4">Season History</h3>
+              <ResponsiveContainer width="100%" height={260}>
+                <LineChart data={seasonTrendData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="season" tick={{ fontSize: 12 }} />
+                  <YAxis yAxisId="pele" domain={[0, 100]} tick={{ fontSize: 12 }} label={{ value: "PELE", angle: -90, position: "insideLeft", style: { fontSize: 11 } }} />
+                  <YAxis yAxisId="components" orientation="right" tick={{ fontSize: 12 }} label={{ value: "OC / DC", angle: 90, position: "insideRight", style: { fontSize: 11 } }} />
+                  <Tooltip
+                    formatter={(value: number, name: string) => [value, name]}
+                    labelFormatter={(label) => {
+                      const entry = seasonTrendData.find((d) => d.season === label);
+                      return entry ? `${label} — ${entry.team}` : label;
+                    }}
+                  />
+                  <Legend />
+                  <Line yAxisId="pele" type="monotone" dataKey="PELE" stroke="#2563eb" strokeWidth={2.5} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                  <Line yAxisId="components" type="monotone" dataKey="OC" stroke="#f59e0b" strokeWidth={1.5} dot={{ r: 3 }} strokeDasharray="4 2" />
+                  <Line yAxisId="components" type="monotone" dataKey="DC" stroke="#16a34a" strokeWidth={1.5} dot={{ r: 3 }} strokeDasharray="4 2" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Radar Chart */}
             <div className="bg-gray-50 rounded-lg p-4">
