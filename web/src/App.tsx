@@ -19,7 +19,6 @@ function App() {
   const [selectedSeason, setSelectedSeason] = useState("");
   const [selectedTeam, setSelectedTeam] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
-  const [comparePlayers, setComparePlayers] = useState<Player[]>([]);
 
   const players = playersData as Player[];
   const filters = filtersData as Filters;
@@ -38,34 +37,6 @@ function App() {
     });
   }, [players, searchTerm, selectedSeason, selectedTeam]);
 
-  const handlePlayerSelect = (player: Player) => {
-    setSelectedPlayer(player);
-  };
-
-  const handleAddToCompare = (player: Player) => {
-    if (comparePlayers.length < 3) {
-      const alreadyExists = comparePlayers.some(
-        (p) => p.player_id === player.player_id && p.season === player.season
-      );
-      if (!alreadyExists) {
-        setComparePlayers([...comparePlayers, player]);
-      }
-    }
-  };
-
-  const handleRemoveFromCompare = (player: Player) => {
-    setComparePlayers(
-      comparePlayers.filter(
-        (p) =>
-          !(p.player_id === player.player_id && p.season === player.season)
-      )
-    );
-  };
-
-  const handleClearCompare = () => {
-    setComparePlayers([]);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header activeTab={activeTab} onTabChange={setActiveTab} />
@@ -83,36 +54,21 @@ function App() {
               onTeamChange={setSelectedTeam}
             />
 
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4">
               <p className="text-sm text-gray-600">
                 {filteredPlayers.length} players found
               </p>
-              {comparePlayers.length > 0 && (
-                <button
-                  onClick={() => setActiveTab("compare")}
-                  className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200"
-                >
-                  View Comparison ({comparePlayers.length})
-                </button>
-              )}
             </div>
 
             <PlayerTable
               players={filteredPlayers}
-              onPlayerSelect={handlePlayerSelect}
-              selectedPlayers={comparePlayers}
-              onAddToCompare={handleAddToCompare}
-              compareMode={true}
+              onPlayerSelect={(player) => setSelectedPlayer(player)}
             />
           </>
         )}
 
         {activeTab === "compare" && (
-          <PlayerComparison
-            players={comparePlayers}
-            onRemovePlayer={handleRemoveFromCompare}
-            onClearAll={handleClearCompare}
-          />
+          <PlayerComparison allPlayers={players} />
         )}
 
         {activeTab === "about" && <About />}

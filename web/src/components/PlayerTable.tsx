@@ -4,9 +4,6 @@ import type { Player, SortField, SortDirection } from "../types/player";
 interface PlayerTableProps {
   players: Player[];
   onPlayerSelect: (player: Player) => void;
-  selectedPlayers: Player[];
-  onAddToCompare: (player: Player) => void;
-  compareMode: boolean;
 }
 
 function getPeleColor(score: number): string {
@@ -25,13 +22,7 @@ function getPeleBgColor(score: number): string {
   return "bg-red-50";
 }
 
-export function PlayerTable({
-  players,
-  onPlayerSelect,
-  selectedPlayers,
-  onAddToCompare,
-  compareMode,
-}: PlayerTableProps) {
+export function PlayerTable({ players, onPlayerSelect }: PlayerTableProps) {
   const [sortField, setSortField] = useState<SortField>("pele_100");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [page, setPage] = useState(0);
@@ -66,11 +57,6 @@ export function PlayerTable({
   );
   const totalPages = Math.ceil(sortedPlayers.length / pageSize);
 
-  const isSelected = (player: Player) =>
-    selectedPlayers.some(
-      (p) => p.player_id === player.player_id && p.season === player.season
-    );
-
   const SortHeader = ({
     field,
     label,
@@ -99,9 +85,6 @@ export function PlayerTable({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              {compareMode && (
-                <th className="px-3 py-3 w-12"></th>
-              )}
               <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 #
               </th>
@@ -125,29 +108,9 @@ export function PlayerTable({
             {paginatedPlayers.map((player, idx) => (
               <tr
                 key={`${player.player_id}-${player.season}`}
-                className={`hover:bg-blue-50 cursor-pointer transition-colors ${
-                  isSelected(player) ? "bg-blue-100" : ""
-                }`}
+                className="hover:bg-blue-50 cursor-pointer transition-colors"
                 onClick={() => onPlayerSelect(player)}
               >
-                {compareMode && (
-                  <td className="px-3 py-3">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onAddToCompare(player);
-                      }}
-                      disabled={isSelected(player) || selectedPlayers.length >= 3}
-                      className={`w-6 h-6 rounded border-2 flex items-center justify-center text-sm ${
-                        isSelected(player)
-                          ? "bg-blue-500 border-blue-500 text-white"
-                          : "border-gray-300 hover:border-blue-500"
-                      }`}
-                    >
-                      {isSelected(player) ? "✓" : "+"}
-                    </button>
-                  </td>
-                )}
                 <td className="px-3 py-3 text-sm text-gray-500">
                   {page * pageSize + idx + 1}
                 </td>
